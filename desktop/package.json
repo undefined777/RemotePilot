@@ -2,6 +2,10 @@
   "name": "remotepilot-desktop",
   "version": "1.0.0",
   "description": "RemotePilot Desktop Application",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/undefined777/RemotePilot.git"
+  },
   "main": "src/main.js",
   "scripts": {
     "dev": "vite",
@@ -23,7 +27,8 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
-    }
+    },
+    "publish": null
   },
   "keywords": [],
   "author": "",
