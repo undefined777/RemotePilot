@@ -62,3 +62,15 @@ CREATE INDEX IF NOT EXISTS idx_command_logs_user_id ON command_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_command_logs_device_id ON command_logs(device_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
+
+-- Custom Commands table
+CREATE TABLE IF NOT EXISTS custom_commands (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  command TEXT NOT NULL,
+  user_id INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_custom_commands_user_id ON custom_commands(user_id);

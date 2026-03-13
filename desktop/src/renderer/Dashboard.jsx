@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, LogOut, Monitor, Activity, Key, Copy, Check, Wifi, WifiOff, Plus, Trash2, Minus, Square, X, User, Settings, Power } from 'lucide-react';
+import { Terminal, LogOut, Monitor, Activity, Key, Copy, Check, Wifi, WifiOff, Plus, Trash2, Minus, Square, X, User, Settings, Power, Moon, Shield, RotateCcw, Edit, Users, Zap, Lock, Timer } from 'lucide-react';
 
 // 带悬停效果的标题栏
 function TitleBar({ onLogout, onSettings, connected }) {
@@ -69,18 +69,39 @@ function Dashboard({ user, onLogout }) {
   const [devices, setDevices] = useState([]);
   const [logs, setLogs] = useState([]);
   const [apiKeys, setApiKeys] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [customCommands, setCustomCommands] = useState([]);
   const [copiedKey, setCopiedKey] = useState(null);
   const [connected, setConnected] = useState(false);
   const [showNewKey, setShowNewKey] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  
+  // Custom command modal
+  const [showNewCustomCommand, setShowNewCustomCommand] = useState(false);
+  const [newCustomCommandName, setNewCustomCommandName] = useState('');
+  const [newCustomCommandValue, setNewCustomCommandValue] = useState('');
+  
+  // User management modal
+  const [showNewUser, setShowNewUser] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserRole, setNewUserRole] = useState('user');
+  const [editingUser, setEditingUser] = useState(null);
 
   const httpUrl = localStorage.getItem('httpUrl') || 'http://192.168.100.223:3000';
   const wsUrl = localStorage.getItem('serverUrl') || 'ws://192.168.100.223:3001';
   const username = localStorage.getItem('username') || user?.username;
 
   useEffect(() => {
+    // 获取或创建设备ID
+    let deviceId = localStorage.getItem('deviceId');
+    if (!deviceId) {
+      deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('deviceId', deviceId);
+    }
+    
     fetchData();
     
     const ws = new WebSocket(wsUrl);
@@ -90,8 +111,8 @@ function Dashboard({ user, onLogout }) {
       // 注册设备
       ws.send(JSON.stringify({
         type: 'register',
-        device_id: localStorage.getItem('deviceId') || 'device_' + Date.now(),
-        device_name: username || '我的电脑',
+        device_id: deviceId,
+        device_name: localStorage.getItem('deviceName') || username || '我的电脑',
         user_id: 1
       }));
     };
@@ -108,19 +129,25 @@ function Dashboard({ user, onLogout }) {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
       
-      const [devicesRes, logsRes, keysRes] = await Promise.all([
+      const [devicesRes, logsRes, keysRes, usersRes, customRes] = await Promise.all([
         fetch(`${httpUrl}/api/devices`, { headers }),
         fetch(`${httpUrl}/api/commands`, { headers }),
-        fetch(`${httpUrl}/api/keys`, { headers })
+        fetch(`${httpUrl}/api/keys`, { headers }),
+        fetch(`${httpUrl}/api/users`, { headers }),
+        fetch(`${httpUrl}/api/custom-commands`, { headers })
       ]);
       
       const devicesData = await devicesRes.json();
       const logsData = await logsRes.json();
       const keysData = await keysRes.json();
+      const usersData = await usersRes.json();
+      const customData = await customRes.json();
       
       if (devicesData.success) setDevices(devicesData.devices || []);
       if (logsData.success) setLogs(logsData.commands || []);
       if (keysData.success) setApiKeys(keysData.keys || []);
+      if (usersData.success) setUsers(usersData.users || []);
+      if (customData.success) setCustomCommands(customData.commands || []);
     } catch (err) {
       console.error('Fetch error:', err);
     }
@@ -130,7 +157,18 @@ function Dashboard({ user, onLogout }) {
     setShowLogoutConfirm(true);
   };
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
+    // 通知后端设备离线
+    try {
+      const deviceId = localStorage.getItem('deviceId');
+      await fetch(`${httpUrl}/api/devices/offline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_id: deviceId })
+      });
+    } catch (e) {
+      console.log('Logout notification failed:', e);
+    }
     localStorage.clear();
     onLogout();
   };
@@ -234,8 +272,11 @@ function Dashboard({ user, onLogout }) {
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
           {[
             { id: 'devices', icon: Monitor, label: '设备' },
+            { id: 'commands', icon: Zap, label: '控制' },
+            { id: 'custom', icon: Terminal, label: '自定义' },
             { id: 'logs', icon: Activity, label: '日志' },
-            { id: 'keys', icon: Key, label: 'Keys' }
+            { id: 'keys', icon: Key, label: 'Keys' },
+            { id: 'users', icon: Users, label: '用户' }
           ].map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={tabStyle(tab.id)}>
               <tab.icon size={16} /> {tab.label}

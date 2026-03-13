@@ -297,8 +297,24 @@ function executeCommand(command, cmdId) {
     case 'restart':
       cmd = process.platform === 'win32' ? 'shutdown /r /t 0' : 'reboot';
       break;
+    case 'reboot':
+      cmd = process.platform === 'win32' ? 'shutdown /r /t 0' : 'reboot';
+      break;
     case 'logout':
+    case 'logoff':
       cmd = process.platform === 'win32' ? 'shutdown /l' : 'logout';
+      break;
+    case 'sleep':
+      // 睡眠 - Windows
+      cmd = process.platform === 'win32' ? 'rundll32.exe powrprof.dll,SetSuspendState 0,1,0' : 'systemctl suspend';
+      break;
+    case 'lock':
+      // 锁定屏幕 - Windows
+      cmd = process.platform === 'win32' ? 'rundll32.exe user32.dll,LockWorkStation' : 'loginctl lock-session';
+      break;
+    case 'hibernate':
+      // 休眠 - Windows
+      cmd = process.platform === 'win32' ? 'shutdown /h' : 'systemctl hibernate';
       break;
     default:
       sendCommandResult(cmdId, false, '未知命令');

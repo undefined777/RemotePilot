@@ -14,6 +14,8 @@ const devicesRoutes = require('./routes/devices');
 const apiKeysRoutes = require('./routes/api_keys');
 const commandsRoutes = require('./routes/commands');
 const publicRoutes = require('./routes/public');
+const customCommandsRoutes = require('./routes/custom_commands');
+const usersRoutes = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,6 +30,8 @@ app.use('/api/auth', authRoutes.router);
 app.use('/api/devices', devicesRoutes);
 app.use('/api/keys', apiKeysRoutes.router);
 app.use('/api/commands', commandsRoutes.router);
+app.use('/api/custom-commands', customCommandsRoutes.router);
+app.use('/api/users', usersRoutes.router);
 app.use('/api/public', publicRoutes.router);
 
 // Legacy API routes compatibility

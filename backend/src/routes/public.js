@@ -4,7 +4,7 @@ const { db } = require('../db/database');
 const router = express.Router();
 
 // Command whitelist - only these commands are allowed
-const ALLOWED_COMMANDS = ['shutdown', 'reboot', 'restart', 'logout', 'suspend', 'wake'];
+const ALLOWED_COMMANDS = ['shutdown', 'reboot', 'restart', 'logout', 'logoff', 'suspend', 'wake', 'sleep', 'lock', 'hibernate'];
 
 // Global device connections map (set from index.js)
 let deviceConnections = new Map();

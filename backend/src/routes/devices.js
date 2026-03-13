@@ -134,3 +134,21 @@ router.delete('/:id', authenticateToken, (req, res) => {
 });
 
 module.exports = router;
+// Set device offline by device_id (no auth required for desktop client)
+router.post('/offline', (req, res) => {
+  try {
+    const { device_id } = req.body;
+    
+    if (!device_id) {
+      return res.status(400).json({ success: false, message: 'device_id required' });
+    }
+    
+    db.prepare('UPDATE devices SET status = ? WHERE device_id = ?')
+      .run('offline', device_id);
+    
+    res.json({ success: true, message: 'Device offline' });
+  } catch (error) {
+    console.error('Set offline error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});

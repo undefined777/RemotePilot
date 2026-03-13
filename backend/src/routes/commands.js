@@ -5,7 +5,7 @@ const { authenticateToken } = require('./auth');
 const router = express.Router();
 
 // Command whitelist - only these commands are allowed
-const ALLOWED_COMMANDS = ['shutdown', 'restart', 'logout'];
+const ALLOWED_COMMANDS = ['shutdown', 'reboot', 'restart', 'logout', 'logoff', 'sleep', 'lock', 'hibernate'];
 
 // Global device connections map (set from index.js)
 let deviceConnections = new Map();
