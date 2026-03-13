@@ -7,4 +7,8 @@ contextBridge.exposeInMainWorld('electron', {
   maximize: () => ipcRenderer.send('window-maximize'),
   close: () => ipcRenderer.send('window-close'),
   isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  
+  // WebSocket 控制
+  startWebSocket: () => ipcRenderer.send('start-websocket'),
+  stopWebSocket: () => ipcRenderer.send('stop-websocket'),
 });

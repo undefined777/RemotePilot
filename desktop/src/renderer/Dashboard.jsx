@@ -108,6 +108,9 @@ function Dashboard({ user, onLogout }) {
     
     ws.onopen = () => {
       setConnected(true);
+      // 通知主进程登录成功
+      window.electron?.startWebSocket();
+      
       // 注册设备
       ws.send(JSON.stringify({
         type: 'register',

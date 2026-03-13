@@ -431,8 +431,8 @@ app.whenReady().then(() => {
   // 创建系统托盘
   createTray();
   
-  // 连接WebSocket
-  connectWebSocket();
+  // 等待登录成功后，由渲染进程通知再连接WebSocket
+  // 不要在这里自动连接！
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -457,4 +457,21 @@ app.on('before-quit', () => {
   if (ws) {
     ws.close();
   }
+});
+
+// 添加在文件末尾：处理登录成功后连接WebSocket的请求
+// Wait for renderer to tell us to connect after login
+ipcMain.on('start-websocket', () => {
+  console.log('[Main] 收到登录成功通知，开始连接WebSocket');
+  connectWebSocket();
+});
+
+ipcMain.on('stop-websocket', () => {
+  console.log('[Main] 收到登出通知，关闭WebSocket');
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+  isConnected = false;
+  updateTrayMenu();
 });
