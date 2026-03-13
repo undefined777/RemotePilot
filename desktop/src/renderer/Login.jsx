@@ -9,6 +9,7 @@ function Login({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hoverBtn, setHoverBtn] = useState(null);
 
   const handleMinimize = () => window.electron?.minimize();
   const handleMaximize = () => window.electron?.maximize();
@@ -106,15 +107,27 @@ function Login({ onLogin }) {
           <span style={{ color: '#fff', fontSize: '13px', fontWeight: '500' }}>RemotePilot - 登录</span>
         </div>
         <div style={{ display: 'flex', WebkitAppRegion: 'no-drag' }}>
-          <button onClick={handleMinimize} style={btnStyle} title="最小化">
-            <Minus size={14} color="#e0e0e0" />
-          </button>
-          <button onClick={handleMaximize} style={btnStyle} title="最大化">
-            <Square size={12} color="#e0e0e0" />
-          </button>
-          <button onClick={handleClose} style={{...btnStyle, color: '#fff'}} title="关闭">
-            <X size={14} />
-          </button>
+          {[
+            { id: 'min', icon: Minus, action: handleMinimize, title: '最小化' },
+            { id: 'max', icon: Square, action: handleMaximize, title: '最大化', size: 12 },
+            { id: 'close', icon: X, action: handleClose, title: '关闭', danger: true }
+          ].map(btn => (
+            <button
+              key={btn.id}
+              onClick={btn.action}
+              onMouseEnter={() => setHoverBtn(btn.id)}
+              onMouseLeave={() => setHoverBtn(null)}
+              style={{
+                width: '46px', height: '40px', border: 'none', background: 'transparent',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'background 0.15s',
+                background: hoverBtn === btn.id ? (btn.danger ? '#e81123' : '#3a3a3a') : 'transparent',
+              }}
+              title={btn.title}
+            >
+              <btn.icon size={btn.size || 14} color={hoverBtn === btn.id && btn.danger ? '#fff' : '#e0e0e0'} />
+            </button>
+          ))}
         </div>
       </div>
 
