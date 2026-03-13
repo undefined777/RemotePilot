@@ -8,9 +8,10 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // 检查是否已登录
+    // 检查是否已登录 - 需要同时有 user 和 token
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const token = localStorage.getItem('token');
+    if (savedUser && token) {
       setUser(JSON.parse(savedUser));
       setIsLoggedIn(true);
     }
