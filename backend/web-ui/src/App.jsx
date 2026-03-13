@@ -21,7 +21,9 @@ import {
   XCircle,
   User,
   Shield,
-  X
+  X,
+  PowerOff,
+  RotateCcw
 } from 'lucide-react'
 import './App.css'
 
@@ -248,6 +250,27 @@ function App() {
       setApiKeys(apiKeys.filter(k => k.id !== keyId))
     } catch (err) {
       alert(err.response?.data?.message || '删除失败')
+    }
+  }
+
+  const executeCommand = async (deviceId, command) => {
+    if (!confirm(`确定要对此设备执行 "${command === 'shutdown' ? '关机' : '重启'}" 命令吗？`)) {
+      return
+    }
+
+    try {
+      const res = await axios.post(`${API_BASE}/commands`, 
+        { device_id: deviceId, command },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (res.data.success) {
+        alert(`${command === 'shutdown' ? '关机' : '重启'}命令已发送！`)
+        fetchCommands()
+      } else {
+        alert(res.data.message || '命令执行失败')
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || '命令执行失败')
     }
   }
 
@@ -481,12 +504,24 @@ function App() {
                           <code className="device-id">{device.device_id}</code>
                           <span className="last-seen">最后活跃: {formatTime(device.last_seen)}</span>
                         </div>
-                        <div className="device-actions">
+                        <div className="device-actions device-control-btns">
                           <button 
-                            className="action-btn" 
+                            className="control-btn shutdown"
                             disabled={device.status !== 'online'}
+                            onClick={() => executeCommand(device.device_id, 'shutdown')}
+                            title="关机"
                           >
-                            控制
+                            <PowerOff size={14} />
+                            <span>关机</span>
+                          </button>
+                          <button 
+                            className="control-btn restart"
+                            disabled={device.status !== 'online'}
+                            onClick={() => executeCommand(device.device_id, 'restart')}
+                            title="重启"
+                          >
+                            <RotateCcw size={14} />
+                            <span>重启</span>
                           </button>
                         </div>
                       </div>

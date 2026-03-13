@@ -608,6 +608,53 @@ body {
   border-top: 1px solid var(--border-subtle);
 }
 
+.device-control-btns {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.control-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.control-btn.shutdown {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--accent-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.control-btn.shutdown:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: var(--accent-red);
+}
+
+.control-btn.restart {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-yellow);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.control-btn.restart:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--accent-yellow);
+}
+
+.control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .action-btn {
   width: 100%;
   padding: 8px;
