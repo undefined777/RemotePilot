@@ -12,6 +12,23 @@ let deviceId = null;
 let isConnected = false;
 let heartbeatInterval = null;
 let reconnectTimeout = null;
+let serverUrl = 'ws://localhost:3001';
+
+// 从配置文件读取服务器地址
+function loadServerUrl() {
+  try {
+    const configPath = path.join(__dirname, 'renderer', 'config.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (config.serverUrl) {
+        serverUrl = config.serverUrl;
+        console.log('[Config] 加载服务器地址:', serverUrl);
+      }
+    }
+  } catch (error) {
+    console.error('[Config] 读取配置失败:', error);
+  }
+}
 
 // 设备ID文件路径
 const deviceIdFile = path.join(app.getPath('userData'), 'device_id.txt');
@@ -34,31 +51,89 @@ function getOrCreateDeviceId() {
   return deviceId;
 }
 
+// 创建托盘图标（程序化生成的图标）
+function createTrayIcon() {
+  // 创建一个 16x16 的图标数据
+  const size = 16;
+  const canvas = Buffer.alloc(size * size * 4);
+  
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const idx = (y * size + x) * 4;
+      // 创建渐变蓝色圆形图标
+      const dx = x - size / 2;
+      const dy = y - size / 2;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      if (dist < size / 2 - 1) {
+        // 蓝色圆形
+        canvas[idx] = 0;       // R
+        canvas[idx + 1] = 120; // G
+        canvas[idx + 2] = 212; // B
+        canvas[idx + 3] = 255; // A
+      } else {
+        // 透明
+        canvas[idx] = 0;
+        canvas[idx + 1] = 0;
+        canvas[idx + 2] = 0;
+        canvas[idx + 3] = 0;
+      }
+    }
+  }
+  
+  return nativeImage.createFromBuffer(canvas, { width: size, height: size });
+}
+
 // 创建系统托盘
 function createTray() {
-  // 创建一个简单的托盘图标
-  const iconPath = path.join(__dirname, 'icon.png');
-  let icon;
-  
-  if (fs.existsSync(iconPath)) {
-    icon = nativeImage.createFromPath(iconPath);
-  } else {
-    // 如果没有图标，创建一个简单的默认图标
-    icon = nativeImage.createEmpty();
-  }
+  // 创建程序化图标
+  const icon = createTrayIcon();
   
   tray = new Tray(icon);
   updateTrayMenu();
   
   tray.setToolTip('RemotePilot 桌面客户端');
+  
+  // 双击显示窗口
+  tray.on('double-click', () => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
 }
 
 // 更新托盘菜单
 function updateTrayMenu() {
   const statusText = isConnected ? '🟢 已连接' : '🔴 未连接';
+  const statusColor = isConnected ? '#4ec9b0' : '#f14c4c';
   
   const contextMenu = Menu.buildFromTemplate([
-    { label: statusText, enabled: false },
+    { 
+      label: 'RemotePilot', 
+      enabled: false,
+      icon: createTrayIcon().resize({ width: 16, height: 16 }),
+    },
+    { type: 'separator' },
+    { 
+      label: statusText, 
+      enabled: false,
+    },
+    { 
+      label: `服务器: ${serverUrl.replace('ws://', '')}`, 
+      enabled: false,
+      visible: false,
+    },
+    { type: 'separator' },
+    { 
+      label: '📊 状态', 
+      enabled: false,
+    },
+    { 
+      label: isConnected ? '● 已连接到服务器' : '○ 未连接', 
+      enabled: false,
+      visible: false,
+    },
     { type: 'separator' },
     { 
       label: '显示窗口', 
@@ -70,8 +145,32 @@ function updateTrayMenu() {
       }
     },
     { 
+      label: '重新连接', 
+      click: () => {
+        if (ws) {
+          ws.close();
+        }
+        connectWebSocket();
+      }
+    },
+    { type: 'separator' },
+    { 
+      label: '关于 RemotePilot', 
+      click: () => {
+        const { dialog } = require('electron');
+        dialog.showMessageBox(mainWindow, {
+          type: 'info',
+          title: '关于 RemotePilot',
+          message: 'RemotePilot 桌面客户端',
+          detail: '版本: 1.0.0\n远程控制设备管理工具',
+        });
+      }
+    },
+    { type: 'separator' },
+    { 
       label: '退出', 
       click: () => {
+        app.isQuitting = true;
         app.quit();
       }
     }
@@ -85,9 +184,9 @@ function updateTrayMenu() {
 
 // 连接WebSocket
 function connectWebSocket() {
-  console.log('[WebSocket] 尝试连接...');
+  console.log('[WebSocket] 尝试连接:', serverUrl);
   
-  ws = new WebSocket('ws://localhost:3001');
+  ws = new WebSocket(serverUrl);
   
   ws.on('open', () => {
     console.log('[WebSocket] 已连接');
@@ -190,19 +289,15 @@ function executeCommand(command, cmdId) {
   console.log('[Command] 收到命令:', command, 'ID:', cmdId);
   
   let cmd = '';
-  let result = { success: false, output: '' };
   
   switch (command) {
     case 'shutdown':
-      // Windows 关机命令
       cmd = process.platform === 'win32' ? 'shutdown /s /t 0' : 'shutdown -h now';
       break;
     case 'restart':
-      // Windows 重启命令
       cmd = process.platform === 'win32' ? 'shutdown /r /t 0' : 'reboot';
       break;
     case 'logout':
-      // Windows 注销命令
       cmd = process.platform === 'win32' ? 'shutdown /l' : 'logout';
       break;
     default:
@@ -237,13 +332,23 @@ function sendCommandResult(cmdId, success, output) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 700,
+    minWidth: 800,
+    minHeight: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
+    // 暗色主题
+    backgroundColor: '#1e1e1e',
+    show: false,
+  });
+
+  // 窗口准备好后显示
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
   });
 
   // 最小化到托盘时隐藏窗口而不是关闭
@@ -258,14 +363,21 @@ function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    // 使用 app.getAppPath() 来获取正确的路径
     const indexPath = path.join(app.getAppPath(), 'dist', 'index.html');
     console.log('[Window] 加载页面:', indexPath);
     mainWindow.loadFile(indexPath);
   }
+  
+  // 打开开发者工具（开发模式）
+  if (process.env.VITE_DEV_SERVER_URL) {
+    mainWindow.webContents.openDevTools();
+  }
 }
 
 app.whenReady().then(() => {
+  // 加载服务器地址配置
+  loadServerUrl();
+  
   // 获取或创建设备ID
   getOrCreateDeviceId();
   
