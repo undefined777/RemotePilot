@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Terminal, Lock, Server, Eye, EyeOff, LogIn, X, Square, Minus } from 'lucide-react';
 
-// 带标题栏的登录页面
 function Login({ onLogin }) {
   const [serverUrl, setServerUrl] = useState('http://192.168.100.223:3000');
   const [username, setUsername] = useState('');
@@ -21,10 +20,22 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
-      // 清空旧的 localStorage
-      localStorage.clear();
+      // 只用 HTTP 3000 端口登录，不需要 WebSocket
+      const loginRes = await fetch(`${serverUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
       
-      // 保存服务器地址
+      const loginData = await loginRes.json();
+      
+      if (!loginData.success) {
+        setError(loginData.message || '登录失败');
+        setLoading(false);
+        return;
+      }
+      
+      // 转换为 WebSocket URL（自动把 3000 变成 3001）
       let wsUrl = serverUrl;
       if (serverUrl.startsWith('http://')) {
         wsUrl = serverUrl.replace('http://', 'ws://').replace(':3000', ':3001');
@@ -32,32 +43,22 @@ function Login({ onLogin }) {
         wsUrl = serverUrl.replace('https://', 'wss://').replace(':443', ':3001');
       }
       
+      // 关键：保留 deviceId，不要 clear！如果之前有就复用
+      const existingDeviceId = localStorage.getItem('deviceId');
+      if (!existingDeviceId) {
+        // 首次登录，创建新设备ID
+        const newDeviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('deviceId', newDeviceId);
+        localStorage.setItem('deviceName', '我的电脑');
+      }
+      
+      // 保存登录信息
       localStorage.setItem('serverUrl', wsUrl);
       localStorage.setItem('httpUrl', serverUrl);
-
-      // 测试 WebSocket 连接
-      const ws = new WebSocket(wsUrl);
+      localStorage.setItem('token', loginData.token);
+      localStorage.setItem('username', username);
       
-      ws.onopen = () => {
-        ws.close();
-        // 保存用户信息（不保存密码）
-        localStorage.setItem('username', username);
-        onLogin({ username, serverUrl });
-      };
-
-      ws.onerror = () => {
-        setError('无法连接到服务器');
-        setLoading(false);
-      };
-
-      ws.onclose = () => {};
-
-      setTimeout(() => {
-        if (loading) {
-          setError('连接超时，请检查服务器地址');
-          setLoading(false);
-        }
-      }, 3000);
+      onLogin({ username, serverUrl, token: loginData.token });
 
     } catch (err) {
       setError('登录失败: ' + err.message);
@@ -168,7 +169,7 @@ function Login({ onLogin }) {
                 type="text"
                 value={serverUrl}
                 onChange={e => setServerUrl(e.target.value)}
-                placeholder="服务器地址"
+                placeholder="服务器地址 (例如 http://192.168.1.100:3000)"
                 style={{ ...inputStyle }}
               />
             </div>
