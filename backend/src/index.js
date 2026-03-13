@@ -103,14 +103,17 @@ wss.on('connection', (ws, req) => {
       // Handle device registration
       if (data.type === 'register') {
         deviceId = data.device_id;
-        console.log(`Device registered: ${deviceId}`);
+        console.log(`Device registering: ${deviceId}, name: ${data.device_name}, user: ${data.user_id}`);
 
-        // Check if device exists in database
-        const device = db.prepare('SELECT * FROM devices WHERE device_id = ?').get(deviceId);
+        // Check if device exists in database, if not create it
+        let device = db.prepare('SELECT * FROM devices WHERE device_id = ?').get(deviceId);
         if (!device) {
-          ws.send(JSON.stringify({ type: 'error', message: 'Device not found' }));
-          ws.close();
-          return;
+          // Auto-create device on first connection
+          const userId = data.user_id || 1;
+          const deviceName = data.device_name || '未知设备';
+          db.prepare('INSERT INTO devices (device_id, name, user_id, status, last_seen, created_at) VALUES (?, ?, ?, ?, ?, ?)')
+            .run(deviceId, deviceName, userId, 'online', new Date().toISOString(), new Date().toISOString());
+          console.log(`Auto-created new device: ${deviceId}`);
         }
 
         // Register device connection
