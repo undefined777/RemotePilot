@@ -258,7 +258,13 @@ function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    // 打包后的路径：app.asar/dist/index.html
+    const isPackaged = app.isPackaged;
+    if (isPackaged) {
+      mainWindow.loadFile(path.join(process.resourcesPath, 'app', 'dist', 'index.html'));
+    } else {
+      mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
+    }
   }
 }
 

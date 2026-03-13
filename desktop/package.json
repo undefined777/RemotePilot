@@ -21,6 +21,14 @@
     "directories": {
       "output": "release"
     },
+    "files": [
+      "src/**/*",
+      "dist/**/*",
+      "node_modules/**/*"
+    ],
+    "extraMetadata": {
+      "main": "src/main.js"
+    },
     "win": {
       "target": ["nsis"]
     },
