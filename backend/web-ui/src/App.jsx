@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import './App.css'
 
-const API_BASE = 'http://localhost:3000/api'
+const API_BASE = 'http://192.168.100.223:3000/api'
 
 // 模拟设备数据（用于离线演示）
 const mockDevices = [
@@ -50,7 +50,7 @@ function App() {
 
   const checkConnection = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/', { timeout: 2000 })
+      const res = await axios.get('http://192.168.100.223:3000/', { timeout: 2000 })
       if (res.data.status === 'ok') {
         setConnectionStatus('connected')
       } else {
