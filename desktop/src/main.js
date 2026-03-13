@@ -258,13 +258,10 @@ function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
-    // 打包后的路径：app.asar/dist/index.html
-    const isPackaged = app.isPackaged;
-    if (isPackaged) {
-      mainWindow.loadFile(path.join(process.resourcesPath, 'app', 'dist', 'index.html'));
-    } else {
-      mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
-    }
+    // 使用 app.getAppPath() 来获取正确的路径
+    const indexPath = path.join(app.getAppPath(), 'dist', 'index.html');
+    console.log('[Window] 加载页面:', indexPath);
+    mainWindow.loadFile(indexPath);
   }
 }
 
