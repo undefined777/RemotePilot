@@ -23,7 +23,6 @@ function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false);
   
   useEffect(() => {
-    // 检查初始最大化状态
     window.electron?.isMaximized().then(setIsMaximized);
   }, []);
   
@@ -39,22 +38,35 @@ function TitleBar() {
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'flex-end',
-      gap: '8px',
+      justifyContent: 'space-between',
       padding: '8px 16px',
       background: '#0a0a0a',
       borderBottom: '1px solid #1f1f1f',
       WebkitAppRegion: 'drag',
+      userSelect: 'none',
+      height: '40px',
     }}>
-      <button onClick={handleMinimize} style={btnStyle} title="最小化">
-        <Minus size={14} />
-      </button>
-      <button onClick={handleMaximize} style={btnStyle} title={isMaximized ? "还原" : "最大化"}>
-        <Square size={12} />
-      </button>
-      <button onClick={handleClose} style={{...btnStyle, hoverBg: '#e81123'}} title="关闭">
-        <X size={14} />
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', WebkitAppRegion: 'no-drag' }}>
+        <div style={{
+          width: '24px', height: '24px',
+          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+          borderRadius: '6px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 'bold', fontSize: '12px', color: 'white',
+        }}>R</div>
+        <span style={{ color: '#fff', fontSize: '13px', fontWeight: '500' }}>RemotePilot</span>
+      </div>
+      <div style={{ display: 'flex', gap: '4px', WebkitAppRegion: 'no-drag' }}>
+        <button onClick={handleMinimize} style={btnStyle} title="最小化">
+          <Minus size={14} />
+        </button>
+        <button onClick={handleMaximize} style={btnStyle} title={isMaximized ? "还原" : "最大化"}>
+          <Square size={12} />
+        </button>
+        <button onClick={handleClose} style={{...btnStyle, ':hover': { background: '#e81123'}}} title="关闭">
+          <X size={14} />
+        </button>
+      </div>
     </div>
   );
 }
