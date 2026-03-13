@@ -162,6 +162,195 @@ ios/
 }
 ```
 
+## 🌐 公开 API 接口（推荐用于快捷指令）
+
+为方便 iOS 快捷指令使用，我们提供了**无需登录**的公开 API 接口。
+
+### 接口地址
+
+```
+POST http://<你的IP>:3000/api/public/execute
+```
+
+### 请求参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `api_key` | String | ✅ | API 密钥（在服务器管理界面生成） |
+| `command` | String | ✅ | 命令类型 |
+| `device_id` | String | ❌ | 目标设备 ID，不填则发送到所有在线设备 |
+
+### 支持的命令
+
+| 命令 | 说明 |
+|------|------|
+| `shutdown` | 关机 |
+| `reboot` | 重启 |
+| `restart` | 重启（同 reboot） |
+| `logout` | 登出 |
+| `suspend` | 挂起 |
+| `wake` | 唤醒 |
+
+### 快捷指令配置示例
+
+#### 1. 关机快捷指令
+
+**步骤：**
+1. 打开 **快捷指令** App
+2. 点击右上角 **「+」** 创建新快捷指令
+3. 添加 **「URL」** 操作，填写：
+   ```
+   http://你的服务器IP:3000/api/public/execute
+   ```
+4. 添加 **「获取 URL 内容」** 操作
+5. 配置方法为 **「POST」**
+6. 添加 **「字典」** 操作，配置以下内容：
+
+```json
+{
+  "api_key": "你的API密钥",
+  "command": "shutdown"
+}
+```
+
+7. 添加 **「文本」** 键入 API key 的值
+
+> **提示:** 可以在服务器 Web UI 的「API 密钥」页面创建新的 API 密钥
+
+#### 2. 重启快捷指令
+
+```json
+{
+  "api_key": "你的API密钥",
+  "command": "reboot"
+}
+```
+
+#### 3. 发送到指定设备
+
+```json
+{
+  "api_key": "你的API密钥",
+  "command": "shutdown",
+  "device_id": "device-001"
+}
+```
+
+### API 调用示例
+
+#### 关机示例
+
+**请求：**
+- URL: `http://192.168.1.100:3000/api/public/execute`
+- 方法: `POST`
+- Headers: `Content-Type: application/json`
+- Body:
+
+```json
+{
+  "api_key": "rp_xxxxxxxxxxxxxxxxxxxx",
+  "command": "shutdown"
+}
+```
+
+**成功响应：**
+```json
+{
+  "success": true,
+  "message": "Command sent to 1 device(s)",
+  "command": "shutdown",
+  "results": [
+    {
+      "device_id": "device-001",
+      "device_name": "My PC",
+      "status": "online",
+      "sent": true,
+      "log_id": 123
+    }
+  ],
+  "total_devices": 1,
+  "sent_count": 1
+}
+```
+
+**失败响应（无在线设备）：**
+```json
+{
+  "success": false,
+  "error": "No online devices found",
+  "message": "没有在线的设备",
+  "command": "shutdown"
+}
+```
+
+**失败响应（无效 API Key）：**
+```json
+{
+  "success": false,
+  "error": "Invalid API key"
+}
+```
+
+**失败响应（无效命令）：**
+```json
+{
+  "success": false,
+  "error": "Invalid command. Allowed commands: shutdown, reboot, restart, logout, suspend, wake",
+  "allowed_commands": ["shutdown", "reboot", "restart", "logout", "suspend", "wake"]
+}
+```
+
+#### 重启示例
+
+**请求：**
+```json
+{
+  "api_key": "rp_xxxxxxxxxxxxxxxxxxxx",
+  "command": "reboot"
+}
+```
+
+**响应：**
+```json
+{
+  "success": true,
+  "message": "Command sent to 1 device(s)",
+  "command": "reboot",
+  "results": [...],
+  "total_devices": 1,
+  "sent_count": 1
+}
+```
+
+### 获取可用命令列表
+
+```
+GET http://你的服务器IP:3000/api/public/commands
+```
+
+**响应：**
+```json
+{
+  "success": true,
+  "allowed_commands": ["shutdown", "reboot", "restart", "logout", "suspend", "wake"]
+}
+```
+
+### 公开 API 健康检查
+
+```
+GET http://你的服务器IP:3000/api/public/health
+```
+
+**响应：**
+```json
+{
+  "status": "ok",
+  "service": "RemotePilot Public API",
+  "timestamp": "2024-01-01T12:00:00.000Z"
+}
+```
+
 ## 🔧 高级配置
 
 ### 添加到主屏幕
