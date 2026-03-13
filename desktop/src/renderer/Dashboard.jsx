@@ -388,6 +388,8 @@ function Dashboard({ user, onLogout }) {
           </div>
         </div>
       )}
+
+      </div>
     </>
   );
 }
