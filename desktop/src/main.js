@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { WebSocket } = require('ws');
@@ -330,19 +330,44 @@ function sendCommandResult(cmdId, success, output) {
   }
 }
 
+// 窗口控制 - 通过 IPC 暴露给渲染进程
+function setupWindowControls() {
+  ipcMain.on('window-minimize', () => {
+    if (mainWindow) mainWindow.minimize();
+  });
+  
+  ipcMain.on('window-maximize', () => {
+    if (mainWindow) {
+      if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+      } else {
+        mainWindow.maximize();
+      }
+    }
+  });
+  
+  ipcMain.on('window-close', () => {
+    if (mainWindow) mainWindow.hide(); // 隐藏而不是关闭
+  });
+  
+  ipcMain.handle('window-is-maximized', () => {
+    return mainWindow ? mainWindow.isMaximized() : false;
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1000,
+    width: 1100,
     height: 700,
-    minWidth: 800,
+    minWidth: 900,
     minHeight: 600,
+    frame: false, // 无边框窗口
+    backgroundColor: '#0d0d0d',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
-    // 暗色主题
-    backgroundColor: '#1e1e1e',
     show: false,
   });
 
@@ -377,6 +402,9 @@ function createWindow() {
 app.whenReady().then(() => {
   // 加载服务器地址配置
   loadServerUrl();
+  
+  // 设置窗口控制
+  setupWindowControls();
   
   // 获取或创建设备ID
   getOrCreateDeviceId();

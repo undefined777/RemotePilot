@@ -27,12 +27,21 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
+      // 从 HTTP URL 转换出 WebSocket URL
+      let wsUrl = serverUrl;
+      if (serverUrl.startsWith('http://')) {
+        wsUrl = serverUrl.replace('http://', 'ws://').replace(':3000', ':3001');
+      } else if (serverUrl.startsWith('https://')) {
+        wsUrl = serverUrl.replace('https://', 'wss://').replace(':443', ':3001');
+      }
+      
       // 保存服务器地址到 localStorage（供前端使用）
-      localStorage.setItem('serverUrl', serverUrl);
+      localStorage.setItem('serverUrl', wsUrl);
+      localStorage.setItem('httpUrl', serverUrl);
       localStorage.setItem('username', username);
 
       // 测试 WebSocket 连接
-      const ws = new WebSocket(serverUrl);
+      const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
         ws.close();

@@ -13,7 +13,66 @@ import {
   Plus,
   Trash2,
   Clock,
+  Minus,
+  Square,
+  X,
 } from 'lucide-react';
+
+// 窗口控制按钮组件
+function TitleBar() {
+  const [isMaximized, setIsMaximized] = useState(false);
+  
+  useEffect(() => {
+    // 检查初始最大化状态
+    window.electron?.isMaximized().then(setIsMaximized);
+  }, []);
+  
+  const handleMinimize = () => window.electron?.minimize();
+  const handleMaximize = async () => {
+    window.electron?.maximize();
+    const maximized = await window.electron?.isMaximized();
+    setIsMaximized(maximized);
+  };
+  const handleClose = () => window.electron?.close();
+  
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+      gap: '8px',
+      padding: '8px 16px',
+      background: '#0a0a0a',
+      borderBottom: '1px solid #1f1f1f',
+      WebkitAppRegion: 'drag',
+    }}>
+      <button onClick={handleMinimize} style={btnStyle} title="最小化">
+        <Minus size={14} />
+      </button>
+      <button onClick={handleMaximize} style={btnStyle} title={isMaximized ? "还原" : "最大化"}>
+        <Square size={12} />
+      </button>
+      <button onClick={handleClose} style={{...btnStyle, hoverBg: '#e81123'}} title="关闭">
+        <X size={14} />
+      </button>
+    </div>
+  );
+}
+
+const btnStyle = {
+  width: '32px',
+  height: '32px',
+  border: 'none',
+  background: 'transparent',
+  color: '#888',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.15s',
+  WebkitAppRegion: 'no-drag',
+};
 
 function Dashboard({ user, onLogout }) {
   const [ws, setWs] = useState(null);
@@ -139,7 +198,9 @@ function Dashboard({ user, onLogout }) {
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <>
+      <TitleBar />
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <header style={{
         display: 'flex',
         alignItems: 'center',
@@ -327,7 +388,7 @@ function Dashboard({ user, onLogout }) {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
