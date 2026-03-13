@@ -8,14 +8,16 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // 强制检查登录状态 - 如果没有完整数据则清除
+    // 检查登录状态 - 只验证不删除数据
     const savedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    const deviceId = localStorage.getItem('deviceId');
     
-    // 如果有任何一项缺失，清除所有（防止残留数据导致异常）
-    if (!savedUser || !token || !deviceId) {
-      localStorage.clear();
+    // 如果没有登录数据，清除用户相关数据但保留deviceId
+    if (!savedUser || !token) {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      // 保留 deviceId 和 deviceName
       setIsLoggedIn(false);
       setUser(null);
       return;
@@ -28,10 +30,12 @@ function App() {
         setUser(userData);
         setIsLoggedIn(true);
       } else {
-        localStorage.clear();
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
       }
     } catch (e) {
-      localStorage.clear();
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
     }
   }, []);
 
