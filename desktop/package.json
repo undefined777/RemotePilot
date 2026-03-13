@@ -9,14 +9,21 @@
     "electron": "electron .",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
+    "dist": "electron-builder"
+  },
   "build": {
     "appId": "com.remotepilot.desktop",
     "productName": "RemotePilot",
-    "directories": { "output": "release" },
-    "win": { "target": ["nsis"] },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
-  }
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "keywords": [],
   "author": "",
