@@ -56,15 +56,15 @@ function TitleBar() {
         }}>R</div>
         <span style={{ color: '#fff', fontSize: '13px', fontWeight: '500' }}>RemotePilot</span>
       </div>
-      <div style={{ display: 'flex', gap: '4px', WebkitAppRegion: 'no-drag' }}>
-        <button onClick={handleMinimize} style={btnStyle} title="最小化">
-          <Minus size={14} />
+      <div style={{ display: 'flex', gap: '0px', WebkitAppRegion: 'no-drag' }}>
+        <button onClick={handleMinimize} style={btnStyle} title="最小化" onMouseEnter={(e) => e.target.style.background = '#3a3a3a'} onMouseLeave={(e) => e.target.style.background = 'transparent'}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect y="5" width="12" height="2"/></svg>
         </button>
-        <button onClick={handleMaximize} style={btnStyle} title={isMaximized ? "还原" : "最大化"}>
-          <Square size={12} />
+        <button onClick={handleMaximize} style={btnStyle} title={isMaximized ? "还原" : "最大化"} onMouseEnter={(e) => e.target.style.background = '#3a3a3a'} onMouseLeave={(e) => e.target.style.background = 'transparent'}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="1" width="10" height="10"/></svg>
         </button>
-        <button onClick={handleClose} style={{...btnStyle, ':hover': { background: '#e81123'}}} title="关闭">
-          <X size={14} />
+        <button onClick={handleClose} style={{...btnStyle, background: 'transparent', color: '#fff'}} title="关闭" onMouseEnter={(e) => e.target.style.background = '#e81123'} onMouseLeave={(e) => e.target.style.background = 'transparent'}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M1 1L11 11M1 11L11 1" stroke="currentColor" strokeWidth="2"/></svg>
         </button>
       </div>
     </div>
@@ -72,18 +72,23 @@ function TitleBar() {
 }
 
 const btnStyle = {
-  width: '32px',
+  width: '46px',
   height: '32px',
   border: 'none',
   background: 'transparent',
-  color: '#888',
-  borderRadius: '4px',
+  color: '#e0e0e0',
+  borderRadius: '0px',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  transition: 'all 0.15s',
+  transition: 'background 0.15s',
   WebkitAppRegion: 'no-drag',
+  fontSize: '12px',
+};
+
+const btnHoverStyle = {
+  background: '#3a3a3a',
 };
 
 function Dashboard({ user, onLogout }) {
