@@ -169,7 +169,13 @@ function Dashboard({ user, onLogout }) {
     } catch (e) {
       console.log('Logout notification failed:', e);
     }
-    localStorage.clear();
+    
+    // 只删除登录相关的localStorage，保留deviceId用于下次登录
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    // 保留 deviceId 和 deviceName
+    
     onLogout();
   };
 
